@@ -1,20 +1,45 @@
 #!/usr/bin/python3
-"""Extend your Python script to export data in the CSV format."""
+""" getting todo list of users from an api  """
 
+import csv
 import requests
-from sys import argv
+import sys
+
 
 if __name__ == "__main__":
-    if len(argv) == 2:
-        url = "https://jsonplaceholder.typicode.com/"
+    """ getting todo list of users from an api  """
+    n = sys.argv[1]
+    resUser = requests.get(f'https://jsonplaceholder.typicode.com/users/{n}')
+    response = resUser.json()
+    resTask = requests.get('https://jsonplaceholder.typicode.com/todos')
+    responseTask = resTask.json()
+    done = 0
+    total = 0
+    doneTask = []
+    for task in responseTask:
+        if task["userId"] == int(n):
+            if task["completed"] is True:
+                doneTask.append(task["title"])
+                done += 1
+            else:
+                total += 1
 
-    userID = int(argv[1])
-    data = requests.get(url + f"users/{userID}").json()
-    tasks = requests.get(f"{url}users/{userID}/todos").json()
-    completed_tasks = []
+    total += done
 
-    with open('{}.csv'.format(userID), 'w+') as file:
-        for all in tasks:
-            all_data = '"{}","{}","{}","{}"\n'.format(
-                userID, data, all.get('completed'), all.get('title'))
-            file.write(all_data)
+    print(f"Employee {response['name']} is done with tasks({done}/{total}):")
+    for task in doneTask:
+        print(f"\t {task}")
+
+    filename = f"{n}.csv"
+    with open(filename, 'w', encoding='UTF8') as f:
+        writer = csv.writer(f)
+        for task in responseTask:
+            if task['userId'] == int(n):
+                rows = []
+                USER_ID = str(task["userId"])
+                USERNAME = response["username"]
+                TASK_COMPLETED_STATUS = str(task["completed"])
+                TASK_TITLE = task['title']
+
+                f.write('"{}","{}","{}","{}"\n'.format(
+                    USER_ID, USERNAME, TASK_COMPLETED_STATUS, TASK_TITLE))

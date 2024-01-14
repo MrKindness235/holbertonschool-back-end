@@ -1,22 +1,38 @@
 #!/usr/bin/python3
-"""Extend your Python script to export data in the JSON format."""
+""" getting todo list of users from an api  """
+
 import json
 import requests
-from sys import argv
+import sys
+
 
 if __name__ == "__main__":
-    if len(argv) == 2:
-        url = "https://jsonplaceholder.typicode.com/"
+    """ getting todo list of users from an api  """
+    n = sys.argv[1]
+    resUser = requests.get(f'https://jsonplaceholder.typicode.com/users/{n}')
+    response = resUser.json()
+    resTask = requests.get('https://jsonplaceholder.typicode.com/todos')
+    responseTask = resTask.json()
+    done = 0
+    total = 0
+    doneTask = []
+    for task in responseTask:
+        json_file = f"{n}.json"
+        final_dict = {}
+        final_list = []
+        task_list = []
+        for task in responseTask:
+            if task["userId"] == int(n):
+                USER_ID = task["userId"]
+                TASK_TITLE = task['title']
+                TASK_COMPLETED_STATUS = task["completed"]
+                USERNAME = response["username"]
 
-    userID = int(argv[1])
-    data = requests.get(url + f"users/{userID}").json()
-    tasks = requests.get(f"{url}users/{userID}/todos").json()
-    completed_tasks = []
+                task_list.append({
+                    "task": TASK_TITLE,
+                    "completed": TASK_COMPLETED_STATUS,
+                    "username": USERNAME
+                })
 
-    with open('{}.json'.format(userID), 'w+') as file:
-        for all in tasks:
-            all_data = {"task": all.get("title"),
-                        "completed": all.get("completed"), "username": data}
-            completed_tasks.append(all_data)
-        info = {userID: completed_tasks}
-        file.write(json.dumps(info))
+                with open(json_file, "w") as jf:
+                    json.dump({USER_ID: task_list}, jf)
