@@ -1,45 +1,27 @@
 #!/usr/bin/python3
-""" getting todo list of users from an api  """
+""" Export data in the CSV format. """
 
-import csv
 import requests
 import sys
 
 
+def main():
+    """According to user_id, export information in CSV
+    """
+    user_id = sys.argv[1]
+    user = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
+    todos = 'https://jsonplaceholder.typicode.com/todos/?userId={}'.format(
+        user_id)
+    name = requests.get(user).json().get('username')
+    request_todo = requests.get(todos).json()
+
+    with open('{}.csv'.format(user_id), 'w+') as file:
+        for todo in request_todo:
+            info = '"{}","{}","{}","{}"\n'.format(
+                user_id, name, todo.get('completed'), todo.get('title'))
+            file.write(info)
+
+
 if __name__ == "__main__":
-    """ getting todo list of users from an api  """
-    n = sys.argv[1]
-    resUser = requests.get(f'https://jsonplaceholder.typicode.com/users/{n}')
-    response = resUser.json()
-    resTask = requests.get('https://jsonplaceholder.typicode.com/todos')
-    responseTask = resTask.json()
-    done = 0
-    total = 0
-    doneTask = []
-    for task in responseTask:
-        if task["userId"] == int(n):
-            if task["completed"] is True:
-                doneTask.append(task["title"])
-                done += 1
-            else:
-                total += 1
-
-    total += done
-
-    print(f"Employee {response['name']} is done with tasks({done}/{total}):")
-    for task in doneTask:
-        print(f"\t {task}")
-
-    filename = f"{n}.csv"
-    with open(filename, 'w', encoding='UTF8') as f:
-        writer = csv.writer(f)
-        for task in responseTask:
-            if task['userId'] == int(n):
-                rows = []
-                USER_ID = str(task["userId"])
-                USERNAME = response["username"]
-                TASK_COMPLETED_STATUS = str(task["completed"])
-                TASK_TITLE = task['title']
-
-                f.write('"{}","{}","{}","{}"\n'.format(
-                    USER_ID, USERNAME, TASK_COMPLETED_STATUS, TASK_TITLE))
+    if len(sys.argv) == 2:
+        main()

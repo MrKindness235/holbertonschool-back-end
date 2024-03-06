@@ -1,38 +1,30 @@
 #!/usr/bin/python3
-""" getting todo list of users from an api  """
-
+""" Export data in the JSON format. """
 import json
 import requests
 import sys
 
 
+def main():
+    """According to user_id, export information in json
+    """
+    user_id = sys.argv[1]
+    user = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
+    todos = 'https://jsonplaceholder.typicode.com/todos/?userId={}'.format(
+        user_id)
+    name = requests.get(user).json().get('username')
+    request_todo = requests.get(todos).json()
+    tasks = []
+
+    with open('{}.json'.format(user_id), 'w+') as file:
+        for todo in request_todo:
+            task = {"task": todo.get("title"),
+                    "completed": todo.get("completed"), "username": name}
+            tasks.append(task)
+        info = {user_id: tasks}
+        file.write(json.dumps(info))
+
+
 if __name__ == "__main__":
-    """ getting todo list of users from an api  """
-    n = sys.argv[1]
-    resUser = requests.get(f'https://jsonplaceholder.typicode.com/users/{n}')
-    response = resUser.json()
-    resTask = requests.get('https://jsonplaceholder.typicode.com/todos')
-    responseTask = resTask.json()
-    done = 0
-    total = 0
-    doneTask = []
-    for task in responseTask:
-        json_file = f"{n}.json"
-        final_dict = {}
-        final_list = []
-        task_list = []
-        for task in responseTask:
-            if task["userId"] == int(n):
-                USER_ID = task["userId"]
-                TASK_TITLE = task['title']
-                TASK_COMPLETED_STATUS = task["completed"]
-                USERNAME = response["username"]
-
-                task_list.append({
-                    "task": TASK_TITLE,
-                    "completed": TASK_COMPLETED_STATUS,
-                    "username": USERNAME
-                })
-
-                with open(json_file, "w") as jf:
-                    json.dump({USER_ID: task_list}, jf)
+    if len(sys.argv) == 2:
+        main()
